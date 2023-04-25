@@ -1,0 +1,15 @@
+app:
+  name: 'test-treasury'
+  version: '1.0.0'
+
+http:
+  port: '8080'
+
+# конфигурация сервиса логирования
+log:
+    path: "/app/logs/"
+    error_file: "error.log"
+    debug_file: "debug.log"
+
+postgres:
+  pool_max: 2
