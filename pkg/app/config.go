@@ -2,15 +2,13 @@ package app
 
 import (
 	"github.com/ilyakaznacheev/cleanenv"
+	"github.com/litepubl/test-treasury/pkg/postgres"
 )
 
 type Config struct {
 	Name string `yaml:"name" env:"NAME" envDefault:"test-player"`
 	Env  string `yaml:"env" env:"ENV" envDefault:"development"`
-	PG   struct {
-		PoolMax int    `env-required:"true" yaml:"pool_max" env:"PG_POOL_MAX"`
-		URL     string `env-required:"true"                 env:"PG_URL"`
-	} `yaml:"postgres" env:"postgres"`
+	PG   postgres.Config `yaml:"postgres" env:"postgres"`
 		HTTP struct {
 	Port string    `yaml:"port" env:"PORT" envDefault:"8080"`
 } `yaml:"http" env:"http"`
@@ -23,9 +21,11 @@ type Config struct {
 }
 
 func NewConfig() (*Config, error) {
-	cfg := &Config{}
+	cfg := &Config{
+PG: postgres.NewConfig(),
+}
 
-	err := cleanenv.ReadConfig("./config/config.yml", cfg)
+	err := cleanenv.ReadConfig("/config/config.yml", cfg)
 	if err != nil {
 		return nil, err
 	}

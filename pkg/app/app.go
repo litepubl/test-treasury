@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"fmt"
 	stdlog "log"
 	"net/http"
 	"os"
@@ -43,17 +44,19 @@ func NewApp() (*app, error) {
 
 	stdlog.SetFlags(0)
 	stdlog.SetOutput(log.Logger)
+	log.Info().Msg(fmt.Sprintf("%#v", config))
+	log.Info().Msg(config.PG.GetUrl())
 
-	app.router = gin.New()
-	app.router.Use(gin.Recovery())
-	app.router.Use(gin.Logger())
-
-	pg, err := postgres.New(config.PG.URL, postgres.MaxPoolSize(config.PG.PoolMax))
+	pg, err := postgres.New(&config.PG)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Error connect to postgress")
 		return nil, err
 	}
-	defer pg.Close()
+	//defer pg.Close()
+
+	app.router = gin.New()
+	app.router.Use(gin.Recovery())
+	app.router.Use(gin.Logger())
 
 	updateRoutes := controller.NewUpdateRoutes(
 		importer.NewUpdater(

@@ -1,4 +1,3 @@
-// Package postgres implements postgres connection.
 package postgres
 
 import (
@@ -11,55 +10,32 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
-const (
-	_defaultMaxPoolSize  = 1
-	_defaultConnAttempts = 10
-	_defaultConnTimeout  = 10*time.Second
-)
-
-// Postgres -.
 type Postgres struct {
-	maxPoolSize  int
-	connAttempts int
-	connTimeout  time.Duration
-
 	Builder squirrel.StatementBuilderType
 	Pool    *pgxpool.Pool
 }
 
-// New -.
-func New(url string, opts ...Option) (*Postgres, error) {
+func New(config *Config) (*Postgres, error) {
 	pg := &Postgres{
-		maxPoolSize:  _defaultMaxPoolSize,
-		connAttempts: _defaultConnAttempts,
-		connTimeout:  _defaultConnTimeout,
+		Builder: squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar),
 	}
 
-	// Custom options
-	for _, opt := range opts {
-		opt(pg)
-	}
-
-	pg.Builder = squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
-
-	poolConfig, err := pgxpool.ParseConfig(url)
+	poolConfig, err := pgxpool.ParseConfig(config.GetUrl())
 	if err != nil {
 		return nil, fmt.Errorf("postgres - NewPostgres - pgxpool.ParseConfig: %w", err)
 	}
 
-	poolConfig.MaxConns = int32(pg.maxPoolSize)
-
-	for pg.connAttempts > 0 {
+	poolConfig.MaxConns = int32(config.MaxPoolSize)
+	connAttempts := config.ConnAttempts
+	for connAttempts > 0 {
 		pg.Pool, err = pgxpool.ConnectConfig(context.Background(), poolConfig)
 		if err == nil {
 			break
 		}
 
-		log.Printf("Postgres is trying to connect, attempts left: %d", pg.connAttempts)
-
-		time.Sleep(pg.connTimeout)
-
-		pg.connAttempts--
+		log.Printf("Postgres is trying to connect, attempts left: %d", connAttempts)
+		time.Sleep(config.ConnTimeout)
+		connAttempts--
 	}
 
 	if err != nil {
@@ -69,7 +45,6 @@ func New(url string, opts ...Option) (*Postgres, error) {
 	return pg, nil
 }
 
-// Close -.
 func (p *Postgres) Close() {
 	if p.Pool != nil {
 		p.Pool.Close()

@@ -12,4 +12,10 @@ log:
     debug_file: "debug.log"
 
 postgres:
-  pool_max: 2
+  user: user
+  password: pass
+  host: postgres
+  port: 5432
+  db_name: postgres
+  max_pool_size: 2
+  conn_attempts: 10
