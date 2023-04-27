@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"fmt"
 	stdlog "log"
 	"net/http"
 	"os"
@@ -24,6 +23,7 @@ import (
 
 type app struct {
 	config *Config
+	pg     *postgres.Postgres
 	router *gin.Engine
 }
 
@@ -44,15 +44,12 @@ func NewApp() (*app, error) {
 
 	stdlog.SetFlags(0)
 	stdlog.SetOutput(log.Logger)
-	log.Info().Msg(fmt.Sprintf("%#v", config))
-	log.Info().Msg(config.PG.GetUrl())
 
-	pg, err := postgres.New(&config.PG)
+	app.pg, err = postgres.New(&config.PG)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Error connect to postgress")
 		return nil, err
 	}
-	//defer pg.Close()
 
 	app.router = gin.New()
 	app.router.Use(gin.Recovery())
@@ -61,7 +58,7 @@ func NewApp() (*app, error) {
 	updateRoutes := controller.NewUpdateRoutes(
 		importer.NewUpdater(
 			importer.NewImporter(
-				importerrepo.New(pg),
+				importerrepo.New(app.pg),
 				&xmldata.Downloader{},
 			),
 		),
@@ -69,7 +66,7 @@ func NewApp() (*app, error) {
 
 	findnamesRoutes := controller.NewFindnameRoutes(
 		finder.New(
-			finderrepo.New(pg),
+			finderrepo.New(app.pg),
 		),
 	)
 
@@ -125,4 +122,8 @@ func (app *app) Run() error {
 
 func (app *app) GetConfig() *Config {
 	return app.config
+}
+
+func (app *app) Close() {
+	app.pg.Close()
 }

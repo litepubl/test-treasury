@@ -4,7 +4,7 @@ package entity
 
 // Person -.
 type Person struct {
-	Uid int `json:"uid"       example:2674`
+	Uid       int    `json:"uid"       example:2674`
 	FirstName string `json:"first_name"       example:"Abu"`
-	LastName string `json:"last_name"       example:"ABBAS"`
+	LastName  string `json:"last_name"       example:"ABBAS"`
 }

@@ -6,14 +6,14 @@ import (
 )
 
 type Config struct {
-	Name string `yaml:"name" env:"NAME" envDefault:"test-player"`
-	Env  string `yaml:"env" env:"ENV" envDefault:"development"`
+	Name string          `yaml:"name" env:"NAME" envDefault:"test-player"`
+	Env  string          `yaml:"env" env:"ENV" envDefault:"development"`
 	PG   postgres.Config `yaml:"postgres" env:"postgres"`
-		HTTP struct {
-	Port string    `yaml:"port" env:"PORT" envDefault:"8080"`
-} `yaml:"http" env:"http"`
+	HTTP struct {
+		Port string `yaml:"port" env:"PORT" envDefault:"8080"`
+	} `yaml:"http" env:"http"`
 
-	Log  struct {
+	Log struct {
 		Path      string `yaml:"path" env:"LOG_PATH" envDefault:"/app/log/"`
 		ErrorFile string `yaml:"error_file" env:"LOG_ERROR_FILE" envDefault:"error.log"`
 		DebugFile string `yaml:"debug_file" env:"LOG_DEBUG_FILE" envDefault:"debug.log"`
@@ -22,8 +22,8 @@ type Config struct {
 
 func NewConfig() (*Config, error) {
 	cfg := &Config{
-PG: postgres.NewConfig(),
-}
+		PG: postgres.NewConfig(),
+	}
 
 	err := cleanenv.ReadConfig("/config/config.yml", cfg)
 	if err != nil {

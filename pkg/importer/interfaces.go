@@ -12,8 +12,8 @@ import (
 
 type (
 	DataUpdater interface {
-Update(ctx context.Context) error
-GetState() State
+		Update(ctx context.Context) error
+		GetState() State
 	}
 
 	DataImporter interface {

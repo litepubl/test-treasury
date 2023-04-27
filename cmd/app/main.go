@@ -14,6 +14,7 @@ func main() {
 		os.Exit(1)
 	}
 
+	defer app.Close()
 	err = app.Run()
 	if err != nil {
 		log.Error().Err(err).Msg("Error shutdown server")
