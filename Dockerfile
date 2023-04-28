@@ -5,9 +5,7 @@ ARG LOG_DIR=/app/logs
 RUN mkdir -p ${LOG_DIR}
 # Environment Variables
 ENV LOG_FILE_LOCATION=${LOG_DIR}/app.log 
-COPY go.mod go.sum ./
 RUN go mod download
-COPY . /app
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
     go build -o /bin/app ./cmd/app

@@ -16,12 +16,15 @@ services:
       - "${PG_PORT}:5432"
 
   app:
-    build: .
+    build:
+      context: .
+      dockerfile: ${APP_DOCKERFILE:-Dockerfile}
     container_name: ${APP_CONTAINER_NAME}
     image: ${APP_IMAGE_NAME}
     #environment:
     ports:
       - 8080:8080
+      - 4000:4000
     env_file: .env
     depends_on:
       - postgres
