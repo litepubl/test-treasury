@@ -13,41 +13,43 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
-func migrate(config *Config) error {
-	databaseURL := config.GetUrl() + "?sslmode=disable"
+func init() {
+	migrateFunc = func(config *Config) error {
+		databaseURL := config.GetUrl() + "?sslmode=disable"
 
-	var (
-		attempts = config.ConnAttempts
-		err      error
-		m        *migrate.Migrate
-	)
+		var (
+			attempts = config.ConnAttempts
+			err      error
+			m        *migrate.Migrate
+		)
 
-	for attempts > 0 {
-		m, err = migrate.New("file://migrations", databaseURL)
-		if err == nil {
-			break
+		for attempts > 0 {
+			m, err = migrate.New("file://migrations", databaseURL)
+			if err == nil {
+				break
+			}
+
+			log.Printf("Migrate: postgres is trying to connect, attempts left: %d", attempts)
+			time.Sleep(config.ConnTimeout)
+			attempts--
 		}
 
-		log.Printf("Migrate: postgres is trying to connect, attempts left: %d", attempts)
-		time.Sleep(config.ConnTimeout)
-		attempts--
-	}
+		if err != nil {
+			log.Fatalf("Migrate: postgres connect error: %s", err)
+		}
 
-	if err != nil {
-		log.Fatalf("Migrate: postgres connect error: %s", err)
-	}
+		err = m.Up()
+		defer m.Close()
+		if err != nil && !errors.Is(err, migrate.ErrNoChange) {
+			log.Fatalf("Migrate: up error: %s", err)
+		}
 
-	err = m.Up()
-	defer m.Close()
-	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
-		log.Fatalf("Migrate: up error: %s", err)
-	}
+		if errors.Is(err, migrate.ErrNoChange) {
+			log.Printf("Migrate: no change")
+			return err
+		}
 
-	if errors.Is(err, migrate.ErrNoChange) {
-		log.Printf("Migrate: no change")
-		return err
+		log.Printf("Migrate: up success")
+		return nil
 	}
-
-	log.Printf("Migrate: up success")
-	return nil
 }

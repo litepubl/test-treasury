@@ -15,13 +15,15 @@ type Postgres struct {
 	Pool    *pgxpool.Pool
 }
 
+var migrateFunc func(config *Config) error
+
 func New(config *Config) (*Postgres, error) {
 	pg := &Postgres{
 		Builder: squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar),
 	}
 
-	if _, ok := migrate; ok {
-		err := migrate(config)
+	if migrateFunc != nil {
+		err := migrateFunc(config)
 		if err != nil {
 			return nil, err
 		}
