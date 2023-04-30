@@ -19,10 +19,10 @@ func New(r PersonRepo) *Finder {
 
 func (finder *Finder) GetNames(ctx context.Context, name string, strong bool) ([]entity.Person, error) {
 	names := strings.Split(name, " ")
-	firstName := strings.TrimSpace(names[0])
+	firstName := strings.Title(strings.TrimSpace(names[0]))
 	lastName := ""
 	if len(names) > 1 {
-		lastName = strings.TrimSpace(names[1])
+		lastName = strings.Title(strings.TrimSpace(names[1]))
 	}
 
 	return finder.repo.GetNames(context.Background(), firstName, lastName, strong)

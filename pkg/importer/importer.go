@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/litepubl/test-treasury/pkg/entity"
 )
@@ -42,8 +43,8 @@ func (importer *Importer) Import(ctx context.Context) error {
 
 			person := &entity.Person{
 				Uid:       uid,
-				FirstName: sdnEntry.FirstName,
-				LastName:  sdnEntry.LastName,
+				FirstName: strings.Title(sdnEntry.FirstName),
+				LastName:  strings.Title(sdnEntry.LastName),
 			}
 
 			err = importer.updateEntity(ctx, persons, person)

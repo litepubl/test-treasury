@@ -11,4 +11,4 @@ cmd/template
 .gitignore
 .vscode
 .idea
-*bat
+*.bat

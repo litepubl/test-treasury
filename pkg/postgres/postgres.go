@@ -20,6 +20,13 @@ func New(config *Config) (*Postgres, error) {
 		Builder: squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar),
 	}
 
+	if _, ok := migrate; ok {
+		err := migrate(config)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	poolConfig, err := pgxpool.ParseConfig(config.GetUrl())
 	if err != nil {
 		return nil, fmt.Errorf("postgres - NewPostgres - pgxpool.ParseConfig: %w", err)
