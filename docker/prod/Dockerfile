@@ -20,7 +20,7 @@ COPY --from=builder /bin/app /app
 COPY --from=builder /logs /logs
 
 # Declare volumes to mount
-VOLUME [/logs]
+VOLUME /logs
 
 EXPOSE 8080
 CMD ["/app"]
