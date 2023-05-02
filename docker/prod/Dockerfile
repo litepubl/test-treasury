@@ -23,4 +23,6 @@ COPY --from=builder /logs /logs
 VOLUME /logs
 
 EXPOSE 8080
+
+USER nonroot:nonroot
 CMD ["/app"]

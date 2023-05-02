@@ -2,6 +2,7 @@ package app
 
 import (
 	"github.com/ilyakaznacheev/cleanenv"
+	"github.com/litepubl/test-treasury/pkg/logger"
 	"github.com/litepubl/test-treasury/pkg/postgres"
 )
 
@@ -13,16 +14,13 @@ type Config struct {
 		Port string `yaml:"port" env:"PORT" envDefault:"8080"`
 	} `yaml:"http" env:"http"`
 
-	Log struct {
-		Path      string `yaml:"path" env:"LOG_PATH" envDefault:"/app/logs/"`
-		ErrorFile string `yaml:"error_file" env:"LOG_ERROR_FILE" envDefault:"error.log"`
-		DebugFile string `yaml:"debug_file" env:"LOG_DEBUG_FILE" envDefault:"debug.log"`
-	} `yaml:"log" env:"LOG"`
+	Log logger.Config `yaml:"log" env:"LOG"`
 }
 
 func NewConfig() (*Config, error) {
 	cfg := &Config{
-		PG: postgres.NewConfig(),
+		PG:  postgres.NewConfig(),
+		Log: logger.Config{},
 	}
 
 	err := cleanenv.ReadConfig("/config/config.yml", cfg)

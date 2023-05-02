@@ -9,7 +9,7 @@ RUN CGO_ENABLED=0 go install -ldflags "-s -w -extldflags '-static'" github.com/g
 RUN go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 
 # Step 2: Builder
-FROM golang:1.20.3-alpine3.17 as builder
+FROM golang:1.20.3-buster as builder
 COPY --from=modules /go/pkg /go/pkg
 COPY --from=modules /go/bin/dlv /go/bin/dlv
 COPY --from=modules /go/bin/migrate /go/bin/migrate
@@ -22,5 +22,8 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
 
 VOLUME /logs
 COPY config /config
+
 EXPOSE 8080 4000
+
+USER nonroot:nonroot
 CMD [ "/go/bin/dlv", "--listen=:4000", "--headless=true", "--log=true", "--accept-multiclient", "--api-version=2", "exec", "/bin/app" ]

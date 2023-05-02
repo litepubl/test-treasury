@@ -2,7 +2,7 @@ package app
 
 import (
 	"context"
-	stdlog "log"
+
 	"net/http"
 	"os"
 	"os/signal"
@@ -15,16 +15,17 @@ import (
 	finderrepo "github.com/litepubl/test-treasury/pkg/finder/repo"
 	"github.com/litepubl/test-treasury/pkg/importer"
 	importerrepo "github.com/litepubl/test-treasury/pkg/importer/repo"
+	"github.com/litepubl/test-treasury/pkg/logger"
 	"github.com/litepubl/test-treasury/pkg/postgres"
 	"github.com/litepubl/test-treasury/pkg/xmldata"
-	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
 type app struct {
-	config *Config
-	pg     *postgres.Postgres
-	router *gin.Engine
+	config          *Config
+	logConfigurator *logger.Configurator
+	pg              *postgres.Postgres
+	router          *gin.Engine
 }
 
 func NewApp() (*app, error) {
@@ -37,13 +38,10 @@ func NewApp() (*app, error) {
 		config: config,
 	}
 
-	zerolog.SetGlobalLevel(zerolog.DebugLevel)
-
-	skipFrameCount := 3
-	log.Logger = zerolog.New(os.Stdout).With().Timestamp().CallerWithSkipFrameCount(zerolog.CallerSkipFrameCount + skipFrameCount).Logger()
-
-	stdlog.SetFlags(0)
-	stdlog.SetOutput(log.Logger)
+	app.logConfigurator, err = logger.NewConfigurator(&config.Log)
+	if err != nil {
+		return nil, err
+	}
 
 	app.pg, err = postgres.New(&config.PG)
 	if err != nil {
@@ -126,4 +124,5 @@ func (app *app) GetConfig() *Config {
 
 func (app *app) Close() {
 	app.pg.Close()
+	app.logConfigurator.Close()
 }
