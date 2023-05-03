@@ -7,7 +7,7 @@ http:
 
 # конфигурация сервиса логирования
 log:
-    path: "/app/logs/"
+    path: "/logs/"
     error_file: "error.log"
     debug_file: "debug.log"
 

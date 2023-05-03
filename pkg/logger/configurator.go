@@ -27,10 +27,11 @@ func NewConfigurator(config *Config) (*Configurator, error) {
 		return nil, err
 	}
 
+	consoleWriter := zerolog.ConsoleWriter{Out: os.Stdout}
 	errorLevelWriter := &LevelWriter{c.errorFile, zerolog.ErrorLevel}
 	debugLevelWriter := &LevelWriter{c.debugFile, zerolog.DebugLevel}
 
-	multi := zerolog.MultiLevelWriter(errorLevelWriter, debugLevelWriter)
+	multi := zerolog.MultiLevelWriter(consoleWriter, os.Stdout, errorLevelWriter, debugLevelWriter)
 	skipFrameCount := 3
 	log.Logger = zerolog.New(multi).
 		With().

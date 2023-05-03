@@ -21,8 +21,5 @@ COPY --from=builder /logs /logs
 
 # Declare volumes to mount
 VOLUME /logs
-
 EXPOSE 8080
-
-USER nonroot:nonroot
 CMD ["/app"]
