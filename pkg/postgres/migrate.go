@@ -46,7 +46,7 @@ func init() {
 
 		if errors.Is(err, migrate.ErrNoChange) {
 			log.Printf("Migrate: no change")
-			return err
+			return nil
 		}
 
 		log.Printf("Migrate: up success")

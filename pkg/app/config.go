@@ -4,6 +4,12 @@ import (
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/litepubl/test-treasury/pkg/logger"
 	"github.com/litepubl/test-treasury/pkg/postgres"
+	"os"
+)
+
+const (
+	DefaultConfigFilename = "./config/config.yml"
+	AppConfigFileName     = "APP_CONFIG_FILENAME"
 )
 
 type Config struct {
@@ -23,7 +29,13 @@ func NewConfig() (*Config, error) {
 		Log: logger.Config{},
 	}
 
-	err := cleanenv.ReadConfig("/config/config.yml", cfg)
+	configFilename := DefaultConfigFilename
+	env := os.Getenv(AppConfigFileName)
+	if env != "" {
+		configFilename = env
+	}
+
+	err := cleanenv.ReadConfig(configFilename, cfg)
 	if err != nil {
 		return nil, err
 	}

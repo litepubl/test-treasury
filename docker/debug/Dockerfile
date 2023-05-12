@@ -1,5 +1,5 @@
 # Step 1: Modules caching
-FROM golang:1.20.3-alpine3.17 as modules
+FROM golang:1.20.4-alpine3.17 as modules
 COPY go.mod go.sum /modules/
 WORKDIR /modules
 RUN go mod download
@@ -9,7 +9,7 @@ RUN CGO_ENABLED=0 go install -ldflags "-s -w -extldflags '-static'" github.com/g
 RUN go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 
 # Step 2: Builder
-FROM golang:1.20.3-buster as builder
+FROM golang:1.20.4-buster as builder
 COPY --from=modules /go/pkg /go/pkg
 COPY --from=modules /go/bin/dlv /go/bin/dlv
 COPY --from=modules /go/bin/migrate /go/bin/migrate
@@ -18,9 +18,9 @@ WORKDIR /app
 RUN mkdir -p /logs
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
-    go build -tags migrate -gcflags "all=-N -l" -o /bin/app ./cmd/app
+    go build -tags migrate -gcflags "all=-N -l" -o /app/app ./cmd/app
 
-COPY config /config
+#COPY config /config
 VOLUME /logs
 EXPOSE 8080 4000
-CMD [ "/go/bin/dlv", "--listen=:4000", "--headless=true", "--log=true", "--accept-multiclient", "--api-version=2", "exec", "/bin/app" ]
+CMD [ "/go/bin/dlv", "--listen=:4000", "--headless=true", "--log=true", "--accept-multiclient", "--api-version=2", "exec", "/app/app" ]

@@ -7,10 +7,9 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/litepubl/test-treasury/pkg/entity"
 	"github.com/litepubl/test-treasury/pkg/postgres"
-	"github.com/rs/zerolog/log"
 )
 
-const _defaultEntityCap = 64
+const defaultEntityCap = 64
 
 // PersonRepo -.
 type PersonRepo struct {
@@ -29,6 +28,7 @@ func (r *PersonRepo) Store(ctx context.Context, p *entity.Person) error {
 		Columns("uid, first_name, last_name").
 		Values(p.Uid, p.FirstName, p.LastName).
 		ToSql()
+
 	if err != nil {
 		return fmt.Errorf("PersonRepo - Store - r.Builder: %w", err)
 	}
@@ -41,6 +41,7 @@ func (r *PersonRepo) Store(ctx context.Context, p *entity.Person) error {
 	return nil
 }
 
+// Update записывает персону вБД
 func (r *PersonRepo) Update(ctx context.Context, p *entity.Person) error {
 	sql, args, err := r.Builder.
 		Update("persons").
@@ -48,6 +49,7 @@ func (r *PersonRepo) Update(ctx context.Context, p *entity.Person) error {
 		Set("last_name", p.LastName).
 		Where(sq.Eq{"uid": p.Uid}).
 		ToSql()
+
 	if err != nil {
 		return fmt.Errorf("PersonRepo - Update - r.Builder: %w", err)
 	}
@@ -60,7 +62,8 @@ func (r *PersonRepo) Update(ctx context.Context, p *entity.Person) error {
 	return nil
 }
 
-func (r *PersonRepo) DeleteById(ctx context.Context, idList []int) error {
+// DeleteByIDList удаляет записи с uid из слайса
+func (r *PersonRepo) DeleteByIDList(ctx context.Context, idList []int) error {
 	sql, args, err := r.Builder.
 		Delete("persons").
 		Where(sq.Eq{"uid": idList}).
@@ -78,26 +81,25 @@ func (r *PersonRepo) DeleteById(ctx context.Context, idList []int) error {
 	return nil
 }
 
-// GetAll -.
-func (r *PersonRepo) GetAll(ctx context.Context) (map[int]entity.Person, error) {
+// All -.
+func (r *PersonRepo) All(ctx context.Context) (map[int]entity.Person, error) {
 	sql, _, err := r.Builder.
 		Select("uid, first_name, last_name").
 		From("persons").
 		ToSql()
 
 	if err != nil {
-		return nil, fmt.Errorf("PersonRepo - GetPerson - r.Builder: %w", err)
+		return nil, fmt.Errorf("PersonRepo - All - r.Builder: %w", err)
 	}
 
 	rows, err := r.Pool.Query(ctx, sql)
 	if err != nil {
-		log.Info().Err(err).Msg("GetAll persons")
 		return nil, fmt.Errorf("PersonRepo - GetAll - r.Pool.Query: %w", err)
 	}
 
 	defer rows.Close()
 
-	entities := make(map[int]entity.Person, _defaultEntityCap)
+	entities := make(map[int]entity.Person, defaultEntityCap)
 
 	for rows.Next() {
 		e := entity.Person{}

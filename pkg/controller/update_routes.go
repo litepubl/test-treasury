@@ -50,7 +50,7 @@ func (u *UpdateRoutes) Update(c *gin.Context) {
 }
 
 func (u *UpdateRoutes) State(c *gin.Context) {
-	state := u.updater.GetState()
+	state := u.updater.State()
 	c.JSON(http.StatusOK, stateResponse{
 		Result: state == importer.Ok,
 		Info:   state.String(),

@@ -10,7 +10,7 @@ import (
 	"github.com/litepubl/test-treasury/pkg/postgres"
 )
 
-const _defaultEntityCap = 64
+const defaultEntityCap = 64
 
 // PersonRepo -.
 type PersonRepo struct {
@@ -22,13 +22,13 @@ func New(pg *postgres.Postgres) *PersonRepo {
 	return &PersonRepo{pg}
 }
 
-func (r *PersonRepo) GetNames(
+func (r *PersonRepo) Names(
 	ctx context.Context,
 	firstName string,
 	lastName string,
 	strong bool) ([]entity.Person, error) {
 	sql, args, err := r.Builder.
-		Select("uid, first_name, last_name").
+		Select("*").
 		From("persons").
 		Where(r.buildWhere(firstName, lastName, strong)).
 		ToSql()
@@ -44,7 +44,7 @@ func (r *PersonRepo) GetNames(
 
 	defer rows.Close()
 
-	entities := make([]entity.Person, 0, _defaultEntityCap)
+	entities := make([]entity.Person, 0, defaultEntityCap)
 
 	for rows.Next() {
 		e := entity.Person{}

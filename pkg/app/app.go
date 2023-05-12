@@ -2,7 +2,7 @@ package app
 
 import (
 	"context"
-
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -42,6 +42,8 @@ func NewApp() (*app, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	log.Info().Msg(fmt.Sprintf("%#v", config))
 
 	app.pg, err = postgres.New(&config.PG)
 	if err != nil {

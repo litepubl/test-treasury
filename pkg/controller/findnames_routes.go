@@ -25,10 +25,9 @@ func (f *FindnameRoutes) GetNames(c *gin.Context) {
 		return
 	}
 
-	strong := "weak" != strings.ToLower(c.Query("type"))
-	entities, err := f.finder.GetNames(c.Request.Context(), name, strong)
+	strong := strings.ToLower(c.Query("type")) != "weak"
+	entities, err := f.finder.Names(c.Request.Context(), name, strong)
 	if err != nil {
-		//r.l.Error(err, "http - v1 - history")
 		c.AbortWithStatusJSON(http.StatusServiceUnavailable, "service unavailable")
 
 		return

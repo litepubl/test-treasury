@@ -8,17 +8,20 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// Updater  отвечает за обновление и состояние данных
 type Updater struct {
-	importer DataImporter
-	state    State
-	mutex    sync.RWMutex
+	importer   DataImporter
+	state      State
+	stateMutex sync.RWMutex
 }
 
 var (
+	// ErrStateAlreadyUpdating ошибка возникает, когда во время обновления пытаются  еще раз вызвать метод обновления
 	ErrStateAlreadyUpdating = errors.New("data is already updating")
 	ErrNotUpdated           = errors.New("data has been not updated")
 )
 
+// NewUpdater конструктор
 func NewUpdater(importer DataImporter) *Updater {
 	return &Updater{
 		importer: importer,
@@ -26,53 +29,60 @@ func NewUpdater(importer DataImporter) *Updater {
 	}
 }
 
-func (updater *Updater) Update(ctx context.Context) error {
-	if updater.GetState() == Updating {
+// Update обновляет данные в БД из xml
+func (u *Updater) Update(ctx context.Context) error {
+	if u.State() == Updating {
 		return ErrStateAlreadyUpdating
 	}
 
-	updater.setState(Updating)
+	u.setState(Updating)
 
-	signal := make(chan any, 1)
-	go func() {
-		err := updater.importer.Import(ctx)
-		if err == nil {
-			updater.setState(Ok)
-		} else {
-			updater.setState(Empty)
-			log.Info().Err(err).Msg("Updater: importer return error")
-		}
+	importerFinished := func() <-chan State {
+		out := make(chan State, 1)
+		go func() {
+			defer close(out)
+			err := u.importer.Import(ctx)
+			if err != nil {
+				out <- Empty
+				log.Info().Err(err).Msg("Updater: importer return error")
+				return
+			}
 
-		signal <- nil
+			out <- Ok
+		}()
+
+		return out
 	}()
 
 	select {
 	case <-ctx.Done():
-		updater.setState(Empty)
+		u.setState(Empty)
 		log.Info().Msg("Updater: context done")
 
-	case <-signal:
-		log.Info().Msg("Updater: importer finished")
+	case state := <-importerFinished:
+		u.setState(state)
+		log.Info().Msg("Updater: importer finished with result " + state.String())
 	}
 
-	if updater.GetState() == Empty {
+	if u.State() == Empty {
 		return ErrNotUpdated
 	}
 
 	return nil
 }
 
-func (updater *Updater) GetState() State {
-	updater.mutex.RLock()
-	defer updater.mutex.RUnlock()
+// State возвращает текущее состояние, потокобезопасен
+func (u *Updater) State() State {
+	u.stateMutex.RLock()
+	defer u.stateMutex.RUnlock()
 
-	return updater.state
+	return u.state
 }
 
-func (updater *Updater) setState(state State) {
-	log.Info().Msg("Updater: state changed to " + state.String())
-	updater.mutex.Lock()
-	defer updater.mutex.Unlock()
+func (u *Updater) setState(state State) {
+	u.stateMutex.Lock()
+	defer u.stateMutex.Unlock()
 
-	updater.state = state
+	u.state = state
+	log.Info().Msg("Updater: state changed to " + state.String())
 }
